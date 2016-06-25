@@ -1,16 +1,25 @@
 #pragma once
-#pragma once 
-#include"HuffmanTree.hpp"
-#include<string.h>
-#include<algorithm>
 
+#include"HuffmanTree.hpp"
+#include<algorithm>
+#include<string.h>
+
+/*
+	 
+		a 4æ¬¡
+		b 3æ¬¡
+		â€¦â€¦
+		å…±æœ‰ 256 ä¸ªå­—ç¬¦ï¼Œå¼€è¾Ÿ256æ•°ç»„
+*/
 typedef long LongType;
+
+//æ ‡è¯†æ¯ä¸ªå­—ç¬¦
 struct FileInfo {
-	char _ch;
+	char _ch;	
 	LongType _count;
 	string _code;
 
-	FileInfo(const unsigned char ch = 0)
+	FileInfo(unsigned char ch = 0)
 		:_ch(ch)
 		, _count(0)
 	{}
@@ -38,33 +47,37 @@ class FileCompress {
 public:
 	FileCompress()
 	{
-		for (int i = 0; i < 256; i++)
-		{
+		for (int i = 0; i < 256; ++i)
 			_infos[i]._ch = i;
-		}
 	}
 
-	bool Compress(const char *filename)
+public:
+	bool Compress(const char* filename)
 	{
-		//1.´ò¿ªÎÄ¼ş£¬Í³¼ÆÎÄ¼ş×Ö·ûÖĞ×Ö·û³öÏÖµÄ´ÎÊı
+		//1.æ‰“å¼€æ–‡ä»¶ï¼Œç»Ÿè®¡æ¯ä¸ªå­—ç¬¦å‡ºç°æ¬¡æ•°
 		assert(filename);
-		FILE *fOut = fopen(filename, "r");
+		FILE* fOut = fopen(filename,"r");
 		assert(fOut);
-		char ch = fgetc(fOut);    //¶Áµ½ÎÄ¼şµÄ½áÎ²ÊÇEOF
+
 		long long chSize = 0;
+		char ch = fgetc(fOut);
 		while (ch != EOF)
 		{
 			++chSize;
 			_infos[(unsigned char)ch]._count++;
 			ch = fgetc(fOut);
 		}
-		//2.Éú³É¶ÔÓ¦µÄHuffman±àÂë
-		HuffmanTree<FileInfo, NodeCompare<FileInfo>> t;
-		FileInfo invalid;                //·Ç·¨ÖµµÄ_countÊÇ0
-		t.Create(_infos, 256, invalid);
-		_GenerateHuffmanCode(t.GetRoot());
 
-		//3.Ğ´ÈëÑ¹ËõÎÄ¼ş
+		//2.ç”Ÿæˆå¯¹åº”çš„Huffmanç¼–ç 
+		HuffmanTree<FileInfo, NodeCompare<FileInfo>> tree;
+		FileInfo invalid;						//æŒ‡å®šéæ³•å€¼ï¼Œ_countä¸º0
+		tree.Create(_infos, 256, invalid);
+
+		string Ins;
+		Ins.clear();
+		_GenerateHuffmanCode(tree.GetRoot());
+
+		//3.å†™å…¥å‹ç¼©æ–‡ä»¶
 		string compressfile = filename;
 		compressfile += ".huffman";
 		FILE *fInCompress = fopen(compressfile.c_str(), "wb");
@@ -77,7 +90,7 @@ public:
 		while (ch != EOF)
 		{
 			string &code = _infos[(unsigned char)ch]._code;
-			for (int i = 0; i < code.size(); ++i)
+			for (size_t i = 0; i < code.size(); ++i)
 			{
 				Inch <<= 1;
 				if (code[i] == '1')
@@ -93,24 +106,26 @@ public:
 			}
 			ch = fgetc(fOut);
 		}
+		//å¤„ç†æœ€åä¸€ä¸ªä¸æ»¡1ä¸ªByteçš„å•å…ƒ
 		if (index != 0)
 		{
 			Inch <<= (8 - index);
 			fputc(Inch, fInCompress);
 		}
-		//4.Ğ´ÅäÖÃÎÄ¼ş
+
+		//4.å†™é…ç½®æ–‡ä»¶
 		string configfile = filename;
 		configfile += ".cfig";
 		FILE *fInConfig = fopen(configfile.c_str(), "wb");
 		assert(fInConfig);
 
-		char str[128];
-		_itoa(chSize >> 32, str, 10);
-		fputs(str, fInConfig);
+		string str;	//æ¥å—æ¯ä¸ªå­—ç¬¦çš„_count
+		_itoa(chSize >> 32, (char*)str.c_str(), 10);
+		fputs(str.c_str(), fInConfig);
 		fputc('\n', fInConfig);
 
-		_itoa(chSize, str, 10);
-		fputs(str, fInConfig);
+		_itoa(chSize, (char*)str.c_str(), 10);
+		fputs(str.c_str(), fInConfig);
 		fputc('\n', fInConfig);
 
 		for (size_t i = 0; i < 256; ++i)
@@ -120,19 +135,21 @@ public:
 			{
 				Inconfig += _infos[i]._ch;
 				Inconfig += ',';
-				Inconfig += _itoa(_infos[i]._count, str, 10);
+				Inconfig += _itoa(_infos[i]._count,(char*)str.c_str(), 10);
 				Inconfig += '\n';
 			}
 			fputs(Inconfig.c_str(), fInConfig);
+			str.clear();
 		}
 		fclose(fOut);
 		fclose(fInCompress);
 		fclose(fInConfig);
 		return true;
 	}
+
 	bool UnCompress(const char *filename)
 	{
-		//1.¶ÁÈ¡ÅäÖÃÎÄ¼şĞÅÏ¢
+		//1.è¯»å–é…ç½®æ–‡ä»¶ä¿¡æ¯
 		string configfile = filename;
 		configfile += ".cfig";
 		FILE *fOutConfig = fopen(configfile.c_str(), "rb");
@@ -142,14 +159,14 @@ public:
 		long long chSize = 0;
 		ReadLine(fOutConfig, line);
 		chSize = atoi(line.c_str());
-		chSize << 32;
+		chSize <<= 32;
 		line.clear();
 
 		ReadLine(fOutConfig, line);
 		chSize += atoi(line.c_str());
 		line.clear();
 
-		while (ReadLine(fOutConfig, line))
+		while (ReadLine(fOutConfig,line))
 		{
 			if (!line.empty())
 			{
@@ -163,37 +180,38 @@ public:
 			}
 		}
 
-		//2.¹¹ÔìhuffmanÊ÷
-		HuffmanTree<FileInfo, NodeCompare<FileInfo>> t;
-		FileInfo invalid;                //·Ç·¨ÖµµÄ_countÊÇ0
-		t.Create(_infos, 256, invalid);
-		_GenerateHuffmanCode(t.GetRoot());
+		//2.æ„é€ å“ˆå¤«æ›¼æ ‘
+		HuffmanTree<FileInfo, NodeCompare<FileInfo>> tree;
+		FileInfo invalid;						//æŒ‡å®šéæ³•å€¼ï¼Œ_countä¸º0
+		tree.Create(_infos, 256, invalid);
+		_GenerateHuffmanCode(tree.GetRoot());
 
-		//3.½âÑ¹Ëõ
-		string compressfile = filename;   //¶ÁÑ¹ËõÎÄ¼ş
+		//3.è§£å‹æ–‡ä»¶
+		string compressfile = filename;   //è¯»å‹ç¼©æ–‡ä»¶
 		compressfile += ".huffman";
 		FILE *fOutCompress = fopen(compressfile.c_str(), "rb");
 		assert(fOutCompress);
 
-		string uncompressfile = filename;    //Ğ´½âÑ¹ËõÎÄ¼ş
+		string uncompressfile = filename;    //å†™è§£å‹ç¼©æ–‡ä»¶
 		uncompressfile += ".uncompress";
 		FILE *fInUncompress = fopen(uncompressfile.c_str(), "wb");
 		assert(fInUncompress);
 
 		char ch = fgetc(fOutCompress);
-		HuffmanTreeNode<FileInfo> *cur = t.GetRoot();
+		HuffmanTreeNode<FileInfo>* cur = tree.GetRoot();
 		int pos = 8;
 		while (1)
 		{
+			//å¶å­èŠ‚ç‚¹
 			if (cur->_left == NULL && cur->_right == NULL)
 			{
-				fputc(cur->_weight._ch, fInUncompress);
-				cur = t.GetRoot();
-				if (--chSize == 0)
+				fputc(cur->_weight._ch,fInUncompress);
+				cur = tree.GetRoot();
+				if(--chSize==0)
 					break;
 			}
 			--pos;
-			if (ch & (1 << pos))
+			if (ch & (1 << pos))	//posçš„æœ€é«˜ä½1åˆ™ å³å­©å­
 				cur = cur->_right;
 			else
 				cur = cur->_left;
@@ -208,6 +226,7 @@ public:
 		fclose(fInUncompress);
 		return true;
 	}
+	
 protected:
 	void _GenerateHuffmanCode(HuffmanTreeNode<FileInfo>* root)
 	{
@@ -215,21 +234,25 @@ protected:
 			return;
 		_GenerateHuffmanCode(root->_left);
 		_GenerateHuffmanCode(root->_right);
+
 		if (root->_left == NULL && root->_right == NULL)
 		{
 			HuffmanTreeNode<FileInfo>* cur = root;
 			HuffmanTreeNode<FileInfo>* parent = cur->_parent;
-			string &code = _infos[(unsigned char)cur->_weight._ch]._code;
+
+			string& code = _infos[(unsigned char)cur->_weight._ch]._code;
+
 			while (parent)
 			{
 				if (parent->_left == cur)
 					code += '0';
 				else
 					code += '1';
+				
 				cur = parent;
 				parent = cur->_parent;
 			}
-			reverse(code.begin(), code.end());
+			reverse(code.begin(),code.end());
 		}
 	}
 
