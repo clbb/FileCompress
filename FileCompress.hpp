@@ -120,10 +120,8 @@ public:
 		assert(fInConfig);
 
 		string str;	//接受每个字符的_count
-		_itoa(chSize >> 32, (char*)str.c_str(), 10);
-		fputs(str.c_str(), fInConfig);
-		fputc('\n', fInConfig);
-
+		
+		//配置文件的第一行:> 文本总的chSize
 		_itoa(chSize, (char*)str.c_str(), 10);
 		fputs(str.c_str(), fInConfig);
 		fputc('\n', fInConfig);
@@ -157,11 +155,8 @@ public:
 
 		string line;
 		long long chSize = 0;
-		ReadLine(fOutConfig, line);
-		chSize = atoi(line.c_str());
-		chSize <<= 32;
-		line.clear();
-
+		
+		//配置文件的第一行:> 文本总的chSize
 		ReadLine(fOutConfig, line);
 		chSize += atoi(line.c_str());
 		line.clear();
