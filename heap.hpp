@@ -5,7 +5,11 @@
 #include<vector>
 #include<assert.h>
 using namespace std;
-
+ldHeap(A,n)
+/*
+ * 建堆
+ 操作主要是将数组A转化成一个大顶堆。思想是，先找到堆的最后一个非叶子节点（即为第n/2个节点），然后从该节点开始，从后往前逐个调整每个子树，使之称为堆，最终整个数组便是一个堆。子数组A[(n/2)+1..n]中的元素都是树中的叶子，因此都可以看作是只含有一个元素的堆。
+*/
 template<class T>
 struct Less
 {

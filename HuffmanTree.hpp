@@ -9,7 +9,7 @@ struct HuffmanTreeNode {
 	HuffmanTreeNode<T> *_left;
 	HuffmanTreeNode<T> *_right;
 	HuffmanTreeNode<T> *_parent;
-	T _weight;
+	T _weight;        //weight代表自定义类型的对象实体
 
 	HuffmanTreeNode(const T weight)
 		:_left(NULL)
@@ -28,7 +28,7 @@ struct NodeCompare
 	}
 };
 
-template<class T, class Compare>
+zemplate<class T, class Compare>
 class HuffmanTree {
 	typedef HuffmanTreeNode<T> Node;
 public:

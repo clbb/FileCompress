@@ -56,7 +56,7 @@ public:
 	{
 		//1.打开文件，统计每个字符出现次数
 		assert(filename);
-		FILE* fOut = fopen(filename,"r");
+		FILE* fOut = fopen(filename,"rb");
 		assert(fOut);
 
 		long long chSize = 0;
@@ -92,7 +92,7 @@ public:
 			string &code = _infos[(unsigned char)ch]._code;
 			for (size_t i = 0; i < code.size(); ++i)
 			{
-				Inch <<= 1;
+	 			Inch <<= 1;
 				if (code[i] == '1')
 				{
 					Inch |= 1;
@@ -101,7 +101,7 @@ public:
 				{
 					fputc(Inch, fInCompress);
 					index = 0;
-					Inch = 0;
+	 				Inch = 0;
 				}
 			}
 			ch = fgetc(fOut);
@@ -119,7 +119,7 @@ public:
 		FILE *fInConfig = fopen(configfile.c_str(), "wb");
 		assert(fInConfig);
 
-		string str;	//接受每个字符的_count
+		string str;
 		
 		//配置文件的第一行:> 文本总的chSize
 		_itoa(chSize, (char*)str.c_str(), 10);
@@ -206,7 +206,7 @@ public:
 					break;
 			}
 			--pos;
-			if (ch & (1 << pos))	//pos的最高位1则 右孩子
+			if (ch & (1 << pos))	//pos的最高位1则 右孩子 1<<pos is maskCode
 				cur = cur->_right;
 			else
 				cur = cur->_left;
@@ -234,7 +234,9 @@ protected:
 		{
 			HuffmanTreeNode<FileInfo>* cur = root;
 			HuffmanTreeNode<FileInfo>* parent = cur->_parent;
-
+			
+			// *cur类型为huffman类型的node  其中的weight成员代表元素类型info
+			// info._ch   代表相应的字符char 
 			string& code = _infos[(unsigned char)cur->_weight._ch]._code;
 
 			while (parent)
